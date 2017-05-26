@@ -1,0 +1,185 @@
+<style type="text/css">
+</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <title>Train Schedule</title>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <div class="row">
+                <div class="col-md-1"></div>
+                <div class="col-md-10">
+                    <h1>Anytime is Train Time</h1>
+                </div>
+                <div class="col-md-1"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">
+                    <h2 class ="panel-title">Current Train Schedule</h2>
+                    </div>
+
+                    <div class ="panel-body">
+                    
+                    <table id="traintable" class="table">
+
+                        <thead>
+                            <tr>
+                                <td>Train Name</td>
+                                <td>Destination</td>
+                                <td>Frequency(min)</td>
+                                <td>Next Arrival</td>
+                                <td>Minutes Away</td>
+                            </tr>
+                        </thead>
+                        
+                            <tbody>    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+        
+            <div class="col-md-1"></div>
+            <div id="thirdRow" class="col-md-10">
+                
+                    <div class="panel panel-default">
+
+                        <div class="panel-heading">Add Train</div>
+                        <form>
+
+                        <div class="form-group">
+
+                            <label>Train Name</label>
+                            <input type="text" class="form-control" id="trainName" placeholder="Enter Train Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Destination</label>
+                            <input type="text" class="form-control" id="trainDestination" placeholder="Enter Destination">
+                        </div>
+                        <div class="form-group">
+                            <label>First Train Time (HH: mm-military time)</label>
+                            <input type="time" class="form-control" id="trainTime" placeholder=" First Train Time">
+                        </div>
+                        <div class="form-group">
+                            <label>Frequency (min)</label>
+                            <input type="number" class="form-control" id="frequencyMinute" placeholder="">
+                        </div>
+                        <center>
+                            <button type="submit" id="Submit" class="btn btn-default">Submit</button>
+                        </center>
+                        </form>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+    <script type="text/javascript"></script>
+   
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js">
+    </script>
+
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAMhT9G0uOwX4D8iu4QvfkjXGDuuGYxiaI",
+    authDomain: "train-schedule-7e13e.firebaseapp.com",
+    databaseURL: "https://train-schedule-7e13e.firebaseio.com",
+  
+    storageBucket: "train-schedule-7e13e.appspot.com",
+    
+  };
+  firebase.initializeApp(config);
+
+    // Create a variable to reference the database
+    var database = firebase.database();
+
+    $("#Submit").on('click', function(event) {
+event.preventDefault();
+
+var newName = $('#trainName').val().trim();
+var newDestination = $('#trainDestination').val().trim();
+var trainTime = moment($('#trainTime').val().trim(), "HH:mm").format("HH:mm");
+var rapid = $('#frequencyMinute').val().trim();
+
+var newTrain = {
+name: newName,
+dest: newDestination,
+time: trainTime,
+frequency: rapid
+
+}
+
+database.ref().push(newTrain);
+
+console.log(newTrain.name);
+console.log(newTrain.dest);
+console.log(newTrain.time);
+console.log(newTrain.frequency)
+    
+$('#trainName').val('');
+$('#trainDestination').val('');
+$('#trainTime').val('');
+$('frequencyMinute').val('');
+
+return false;
+});
+
+database.ref().on("child_added",function(childSnapshot, prevChildKey) {
+console.log(childSnapshot.val());
+
+var newName = childSnapshot.val().name;
+var newDestination = childSnapshot.val().dest;
+var trainTime = childSnapshot.val().time;
+var rapid = childSnapshot.val().frequency;
+
+console.log(newName);
+console.log(newDestination);
+console.log(trainTime);
+console.log(rapid);
+
+var timeConvert = moment(trainTime, "HH:mm").subtract(1, "years");
+console.log(timeConvert);
+
+var currentTime = moment();
+console.log( "Current Time:" + moment(currentTime).format("HH:mm"));
+
+var differenceInTime = moment().diff(moment(timeConvert), "minutes");
+console.log(differenceInTime);
+
+var trnRem = differenceInTime % rapid;
+console.log(trnRem);
+
+var trainMinAway = rapid - trnRem;
+
+// Next Train
+
+var nextArrival = moment().add(trainMinAway, "minutes");
+console.log("Arrival Time:" + moment(nextArrival).format("HH:mm"));
+
+$("#trainTable > tbody").append("<tr><td>" + newName + "</td><td>" + newDestination + "</td><td>" + rapid  + "</td><td>" + moment(nextArrival).format("HH:mm") + "</td><td>" + trainMinAway + "</td><td>");
+
+
+});
+
+
+    </script>
+</body>
+</html>
